@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Usuarios</title>
+	<link href="../jtable/themes/lightcolor/blue/jtable.css" rel="stylesheet" type="text/css" />
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="../css/jquery-ui-1.10.3.custom.css" rel="stylesheet" type="text/css" />
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../jstree/style.min.css" />
+    <script src="../js/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery-ui-1.10.3.custom.js" type="text/javascript"></script>
+    <script src="../js/jquery.jtable.js" type="text/javascript"></script>
+    <script src="../js/jquery.hotkeys-0.7.9.min.js" type="text/javascript"></script>
+    <link href="../js/validationEngine/validationEngine.jquery.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="../js/validationEngine/jquery.validationEngine-es.js"></script>
+    <script type="text/javascript" src="../js/validationEngine/jquery.validationEngine.js"></script>
+    <script src="../js/jquery.datetimepicker.js"></script>
+    <script src="../js/jquery.price_format.2.0.js"></script>
+    <script src="../js/bootbox.min.js"></script>
+    <style type="text/css">
+    	.clsDatePicker {
+            position:absolute;
+            cursor:default;
+            z-index:1001 !important
+        }
+        .ui-datepicker-month{
+            color: #313131;
+        }
+        .ui-datepicker-year{
+            color: #313131;
+        }
+    	#popup {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+        }
+        #popup_editar_detalle {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+        }
+        #popup_editar {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+        }
+        .content-popup {
+            margin:0px auto;
+            margin-top:2%;
+            position:relative;
+            padding:10px;
+            width:75%;
+            /*min-height:250px;*/
+            border-radius:4px;
+            background-color:#FFFFFF;
+            box-shadow: 0 2px 5px #666666;
+        }
+        .content-popup h2 {
+            color:#48484B;
+            border-bottom: 1px solid #48484B;
+            margin-top: 0;
+            padding-bottom: 4px;
+        }
+        .popup-overlay {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 999;
+            display:none;
+            background-color: #777777;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .close {
+            position: absolute;
+            right: 15px;
+        }
+        .ui-autocomplete {
+            position:absolute;
+            cursor:default;
+            z-index:1001 !important
+        }
+        .btn-xs{
+        	cursor: pointer;
+        }
+    </style>
+    <script type="text/javascript">
+    	var flag = false;
+    	function cerrar_editar(){
+    		$("#close_editar").click();
+    	}
+    	function cerrar(){
+    		$('#close').click();
+    	}
+    	function limpiar_formulario(){
+			$("#grado_academico").empty();
+			$("#cargo").empty();
+			$("#sede").empty();
+			$("#dni").val('');
+			$("#nombres").val('');
+			$("#apellidos").val('');
+			$("#direccion").val('');
+			$("#correo").val('');
+			$("#celular").val('');
+			$("#fecha_nacimiento").val('');
+			$("#usuario").val('');
+			$("#password").val('');
+    	}
+    	function nuevo_usuario(){
+    		$("#dni").removeAttr('disabled');
+    		$("#btn_formulario").attr('onclick', "insertar_usuario()");
+    		$("#btn_formulario").text('Agregar');
+    		
+    		limpiar_formulario();
+
+    		$('#popup_editar').fadeIn('slow');
+            $('.popup-overlay').fadeIn('slow');
+            $('.popup-overlay').height($(window).height());
+            return false;
+    	}
+    	function eliminar_usuario(dni){
+    		$.get('clientes.php', {
+    			parAccion: 'eliminar_usuario',
+    			dni: dni
+    		}, function(responseText){
+    			var obj = JSON.parse(responseText);
+    			if (obj.Result == 'OK') {
+    				limpiar_formulario();
+					bootbox.alert({
+                        message: '<div class="alert alert-success fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Eliminado correctamente.</strong>'+
+                            '</div>'
+                    });
+                    lista_usuarios();
+				}else{
+					bootbox.alert({
+                        message: '<div class="alert alert-danger fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Algo ha salido mal.</strong>'+
+                            '</div>'
+                    });
+				}
+    		});
+    	}
+    	function insertar_usuario(){
+    		$.get('clientes.php', {
+    			parAccion: 'insertar_usuario',
+				dni: $("#dni").val(),
+				nombres: $("#nombres").val(),
+				apellidos: $("#apellidos").val(),
+				direccion: $("#direccion").val(),
+				correo: $("#correo").val(),
+				telefono: $("#celular").val(),
+				fecha_nacimiento: $("#fecha_nacimiento").val()
+    		}, function(responseText){
+    			var obj = JSON.parse(responseText);
+    			if (obj.Result == 'OK') {
+    				limpiar_formulario();
+					bootbox.alert({
+                        message: '<div class="alert alert-success fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Agregado correctamente.</strong>'+
+                            '</div>'
+                    });
+                    lista_usuarios();
+				}else{
+					bootbox.alert({
+                        message: '<div class="alert alert-danger fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Algo ha salido mal.</strong>'+
+                            '</div>'
+                    });
+				}
+    		});
+    	}
+    	function editar_usuario(dni){
+    		$.get('clientes.php', {
+    			parAccion: 'usuario_completo',
+    			dni: dni
+    		}, function(responseText){
+    			var obj = JSON.parse(responseText);
+    			var records = obj.Records;
+
+    			
+    			$("#dni").val(records[0].nro_documento);
+				$("#nombres").val(records[0].nombres);
+				$("#apellidos").val(records[0].apellidos);
+				$("#direccion").val(records[0].direccion);
+				$("#correo").val(records[0].correo);
+				$("#celular").val(records[0].telefono);
+				$("#fecha_nacimiento").val(records[0].fecha_nacimiento);
+    		});
+    		$("#btn_formulario").attr('onclick', "actualizar_usuario()");
+    		$("#btn_formulario").text('Actualizar');
+    		$('#popup_editar').fadeIn('slow');
+            $('.popup-overlay').fadeIn('slow');
+            $('.popup-overlay').height($(window).height());
+            return false;
+    	}
+    	function actualizar_usuario(){
+    		$.get('clientes.php', {
+    			parAccion: 'actualizar_usuario',
+				dni: $("#dni").val(),
+				nombres: $("#nombres").val(),
+				apellidos: $("#apellidos").val(),
+				direccion: $("#direccion").val(),
+				correo: $("#correo").val(),
+				telefono: $("#celular").val(),
+				fecha_nacimiento: $("#fecha_nacimiento").val()
+    		}, function(responseText){
+    			var obj = JSON.parse(responseText);
+    			if (obj.Result == 'OK') {
+					bootbox.alert({
+                        message: '<div class="alert alert-success fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Actualizado correctamente.</strong>'+
+                            '</div>'
+                    });
+                    lista_usuarios();
+				}else{
+					bootbox.alert({
+                        message: '<div class="alert alert-danger fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Algo ha salido mal.</strong>'+
+                            '</div>'
+                    });
+				}
+    		});
+    	}
+    	function habilitar_botones(dni){
+    		flag = true;
+    		$("#direccion_" + dni).removeAttr('disabled');
+			$("#fecha_nacimiento_" + dni).removeAttr('disabled');
+    	}
+    	function lista_usuarios(){
+    		$.get('clientes.php', {
+    			parAccion: 'lista_usuarios'
+    		}, function(responseText){
+    			var obj = JSON.parse(responseText);
+    			if (obj.Result == 'OK') {
+    				var records = obj.Records;
+    				$("#tabla_usuarios").find('tbody').empty();
+					$.each(records, function(i, item) {
+						$("#tabla_usuarios").find('tbody')
+						.append($('<tr>'+
+							'<th scope="row">'+item.nro_documento + '</th>'+
+							'<td>'+ item.apellidos + ' ' + item.nombres + '</td>'+
+							'<td>'+item.telefono+'</td>'+
+                            '<td>'+item.direccion+'</td>'+
+							'<td>'+item.correo+'</td>'+
+							'<td><span class="btn-xs btn-warning" onclick="editar_usuario('+item.nro_documento+')"><i class="glyphicon glyphicon-pencil"></i></span></td>'+
+							'<td><span class="btn-xs btn-danger" onclick="eliminar_usuario('+item.nro_documento+')"><i class="glyphicon glyphicon-remove"></i></span></td>'+
+						'</tr>'));
+					});
+    			}else{
+    				bootbox.alert({
+                        message: '<div class="alert alert-danger fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Algo ha salido mal.</strong>'+
+                            '</div>'
+                    });
+    			}
+    		});
+    	}
+    	$(document).ready(function() {
+    		$('#fecha_nacimiento').datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true,
+                altField: "#fecha_nacimiento_hidden",
+                altFormat: "yy-mm-dd"
+            });
+    		
+    		lista_usuarios();
+
+    		$('#close').on('click', function(){
+                $("#tabla_usuarios_detalle").find('tbody').empty();
+                $('#popup').fadeOut('slow');
+                $('.popup-overlay').fadeOut('slow');
+                return false;
+                flag = false;
+            });
+            $('#close_editar_detalle').on('click', function(){
+                //$("#tabla_usuarios_detalle").find('tbody').empty();
+                $('#popup').fadeOut('slow');
+                $('.popup-overlay').fadeOut('slow');
+                return false;
+                flag = false;
+            });
+            $('#close_editar').on('click', function(){
+                limpiar_formulario();
+                $('#popup_editar').fadeOut('slow');
+                $('.popup-overlay').fadeOut('slow');
+                return false;
+                flag = false;
+            });
+    	});
+    </script>
+</head>
+<body>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Catalogo de Usuarios</h3>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-xs-12" id="div_usuarios">
+                	<button class="btn btn-success" style="float: right; margin-bottom: 5px;" onclick="nuevo_usuario()">Nuevo</button>
+                	<table class="table table-bordered" id="tabla_usuarios">
+                		<thead>
+                			<tr>
+                				<th scope="col">DNI/RUC</th>
+                				<th>Cliente</th>
+                				<th>Celular</th>
+                                <th>Direccion</th>
+                				<th>Correo</th>
+                				<th colspan="2" style="text-align: center;">Acciones</th>
+                			</tr>
+                		</thead>
+                		<tbody>
+                		</tbody>
+                	</table>
+                </div>
+        	</div>
+    	</div>
+    </div>
+    <div id="popup_editar_detalle" style="display: none;">
+        <div class="content-popup">
+            <div class="close"><a href="#" id="close_editar_detalle"><img src="../css/images/close.png"/></a></div>
+            <div>
+                <h2 id="titulo_detalle">Detalle Usuario</h2>
+                <table class="table table-bordered" id="tabla_usuarios_detalle">
+                	<thead>
+        				<th>Direccion</th>
+        				<th>Fec. Nacimiento</th>
+        				<th>E. Civil</th>
+        				<th>G. Academico</th>
+                	</thead>
+                	<tbody>
+                	</tbody>
+                </table>                
+            </div>
+        </div>
+    </div>
+    <div id="popup_editar" style="display: none;">
+        <div class="content-popup">
+            <div class="close"><a href="#" id="close_editar"><img src="../css/images/close.png"/></a></div>
+            <div>
+                <h2 id="titulo_detalle">Detalle Usuario</h2>
+                
+  					<div class="form-row">
+						<div class="form-group col-md-4">
+      						<label for="dni">DNI/RUC:</label>
+      						<input type="text" class="form-control" id="dni" name="dni" placeholder="DNI..." disabled>
+    					</div>
+    					<div class="form-group col-md-4">
+      						<label for="nombres">Nombres:</label>
+      						<input type="text" class="form-control" id="nombres" name="nombres" placeholder="Nombres...">
+    					</div>
+    					<div class="form-group col-md-4">
+      						<label for="apellidos">Apellidos:</label>
+      						<input type="text" class="form-control" id="apellidos" name="apellidos" placeholder="Apellidos...">
+    					</div>
+  					</div>
+  					
+  					<div class="form-row">
+  						<div class="form-group col-md-6">
+	    					<label for="direccion">Direccion:</label>
+	    					<input type="text" class="form-control" id="direccion" name="direccion" placeholder="Direccion ...">
+	  					</div>
+	  					<div class="form-group col-md-6">
+	    					<label for="correo">Correo:</label>
+	    					<input type="text" class="form-control" id="correo" name="correo" placeholder="ejemplo@ejemplo.com">
+	  					</div>
+  					</div>
+  					<div class="form-row">
+    					<div class="form-group col-md-6">
+      						<label for="celular">Celular:</label>
+      						<input type="text" class="form-control" id="celular" name="celular" placeholder="951753426">
+    					</div>
+    					<div class="form-group col-md-6">
+      						<label for="fecha_nacimiento">Fec. Nacimiento:</label>
+            				<div class="input-group">
+                            	<input type="text" name="fecha_nacimiento" id="fecha_nacimiento" readonly="readonly" class="form-control clsDatePicker"> 
+                            	<span class="input-group-addon">
+                                	<i id="calIconTourDateDetails" class="glyphicon glyphicon-th"></i>
+                            	</span>
+                        	</div>
+    					</div>
+  					</div>
+  					<!--<div class="form-row">
+    					<div class="form-group col-md-6">
+      						<label for="usuario">Usuario:</label>
+      						<input type="text" class="form-control" id="usuario" name="usuario" placeholder="Usuario...">
+    					</div>
+    					<div class="form-group col-md-6">
+      						<label for="password">Contraseña:</label>
+      						<input type="password" class="form-control" id="password" name="password" placeholder="*********">
+    					</div>
+  					</div>-->
+  					<span class="btn btn-danger" onclick="cerrar_editar()">Cerrar</span>
+  					<button type="submit" class="btn btn-success" style="float: right;" id="btn_formulario">Actualizar</button>
+				
+            </div>
+        </div>
+    </div>
+    <div class="popup-overlay"></div>
+	<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+    <script src="../dist/js/sb-admin-2.js"></script>
+</body>
+</html>

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Equipos</title>
+    <link href="../jtable/themes/lightcolor/blue/jtable.css" rel="stylesheet" type="text/css" />
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="../css/jquery-ui-1.10.3.custom.css" rel="stylesheet" type="text/css" />
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../jstree/style.min.css" />
+    <script src="../js/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery-ui-1.10.3.custom.js" type="text/javascript"></script>
+    <script src="../js/jquery.jtable.js" type="text/javascript"></script>
+    <script src="../js/jquery.hotkeys-0.7.9.min.js" type="text/javascript"></script>
+    <link href="../js/validationEngine/validationEngine.jquery.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="../js/validationEngine/jquery.validationEngine-es.js"></script>
+    <script type="text/javascript" src="../js/validationEngine/jquery.validationEngine.js"></script>
+    <script src="../js/jquery.datetimepicker.js"></script>
+    <script src="../js/jquery.price_format.2.0.js"></script>
+    <script src="../js/bootbox.min.js"></script>
+    <style type="text/css">
+        .oculta{
+            display: none;
+        }
+        .resaltar{
+            background-color: yellow;
+        }
+        .clsDatePicker {
+            position:absolute;
+            cursor:default;
+            z-index:1001 !important
+        }
+        .superior{
+            margin-bottom: 10px;
+        }
+        .inferior{
+            padding: 15px;
+            color: white;
+            background-color: cadetblue;
+            border-radius: 8px;
+        }
+        .ui-datepicker-month{
+            color: #313131;
+        }
+        .ui-datepicker-year{
+            color: #313131;
+        }
+        #popup {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+        }
+        #popup_stock {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+        }
+        #popup_editar {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+        }
+        .content-popup {
+            margin:0px auto;
+            margin-top:2%;
+            position:relative;
+            padding:10px;
+            width:75%;
+            /*min-height:250px;*/
+            border-radius:4px;
+            background-color:#FFFFFF;
+            box-shadow: 0 2px 5px #666666;
+        }
+        .content-popup h2 {
+            color:#48484B;
+            border-bottom: 1px solid #48484B;
+            margin-top: 0;
+            padding-bottom: 4px;
+        }
+        .popup-overlay {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 999;
+            display:none;
+            background-color: #777777;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .close {
+            position: absolute;
+            right: 15px;
+        }
+        .btn-xs{
+            cursor: pointer;
+        }
+    </style>
+    <script type="text/javascript">
+        function editar_producto(id){
+            $.get('productos.php',{
+                parAccion: 'editar_producto',
+                id: id
+            }, function(data) {
+                var obj = JSON.parse(data);
+                $("#producto").val(obj.Records[0].marca);
+            });
+            $.get('productos.php', {
+                parAccion: 'combo_categorias'
+            }, function(data) {
+                var obj = JSON.parse(data);
+                $.each(obj.Records, function(index, val) {
+                    if(val.id == categoria){
+                        $("#categoria").append('<option value="'+val.id+'" selected>'+val.categoria+'</option>');
+                    }else{
+                        $("#categoria").append('<option value="'+val.id+'">'+val.categoria+'</option>');    
+                    }
+                    
+                });
+            });
+            
+            $("#btn_formulario").attr('onclick', "actualizar_producto("+id+")");
+            $("#btn_formulario").text('Actualizar');
+            $('#popup_editar').fadeIn('slow');
+            $('.popup-overlay').fadeIn('slow');
+            $('.popup-overlay').height($(window).height());
+            return false;
+        }
+        function nuevo_modelo(){
+            $.get('productos.php', {
+                parAccion: 'combo_marca'
+            }, function(data) {
+                var obj = JSON.parse(data);
+                $.each(obj.Records, function(index, val) {
+                    $("#combo_marca").append('<option value="'+val.id+'">'+val.marca+'</option>');
+                });
+            });
+
+            $("#producto").attr('placeholder', 'Modelo...');
+            $("#ocultar").removeAttr('hidden');
+            $("#titulo_detalle").text('Nuevo Modelo');
+
+            $("#btn_formulario").attr('onclick', "guardar_modelo()");
+            $("#btn_formulario").text('Guardar');
+            $('#popup_editar').fadeIn('slow');
+            $('.popup-overlay').fadeIn('slow');
+            $('.popup-overlay').height($(window).height());
+            return false;
+        }
+        function guardar_modelo(){
+            $.get('productos.php', {
+                parAccion: 'guardar_modelo',
+                modelo: $("#producto").val(),
+                marca: $("#combo_marca").val(),
+                stock: $("#stock_i").val(),
+                precio: $("#precio").val()
+            }, function(data) {
+                var obj = JSON.parse(data);
+                if (obj.Result == 'OK') {
+                    //limpiar_formulario();
+                    bootbox.alert({
+                        message: '<div class="alert alert-success" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Actualizado correctamente.</strong>'+
+                            '</div>'
+                    });
+                    lista_productos();
+                }else{
+                    bootbox.alert({
+                        message: '<div class="alert alert-danger" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Algo ha salido mal.</strong>'+
+                            '</div>'
+                    });
+                }
+            });
+        }
+        function actualizar_producto(id){
+            var equipo = $("#producto").val();
+            $.get('productos.php', {
+                parAccion: 'actualizar_producto',
+                equipo: equipo,
+                id: id
+            }, function(data) {
+                var obj = JSON.parse(data);
+                if (obj.Result == 'OK') {
+                    //limpiar_formulario();
+                    bootbox.alert({
+                        message: '<div class="alert alert-success" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Actualizado correctamente.</strong>'+
+                            '</div>'
+                    });
+                    lista_productos();
+                }else{
+                    bootbox.alert({
+                        message: '<div class="alert alert-danger" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Algo ha salido mal.</strong>'+
+                            '</div>'
+                    });
+                }
+            });
+        }
+        function eliminar_producto(serie){
+            bootbox.confirm({
+                message: "¿Seguro de Eliminar este Producto?",
+                buttons: {
+                    confirm: {
+                        label: 'Sí',
+                        className: 'btn-success'
+                    },
+                    cancel: {
+                        label: 'No',
+                        className: 'btn-danger'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        $.get('productos.php', {
+                            parAccion: 'delete',
+                            serie: serie
+                        }, function(data) {
+                            var obj = JSON.parse(data);
+                            if (obj.Result == 'OK') {
+                                bootbox.alert({
+                                    message: '<div class="alert alert-success fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                            '<strong>Eliminado Correctamente.</strong>'+
+                                        '</div>'
+                                });
+                                lista_productos();
+                            }else{
+                                bootbox.alert({
+                                    message: '<div class="alert alert-danger fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                            '<strong>Ago ha salido mal.</strong>'+
+                                        '</div>'
+                                });
+                            }
+                        });
+                    }else{
+                    }
+                }
+            });
+        }
+        function limpiar_formulario(){
+            $("#serie").val('');
+            $("#producto").val('');
+            $("#categoria").empty();
+            $("#categoria").append('<option>SELECCIONA...</option>');
+            $("#radios").empty();
+        }
+        function cerrar_editar(){
+            $("#close_editar").click();
+        }
+        function cerrar_stock(){
+            $("#close_stock").click();
+        }
+        function ver_stock(serie){
+            $("#dataTableStock").find('tbody').empty();
+            $.get('productos.php', {
+                parAccion: 'stock_productos',
+                serie: serie
+            }, function(data) {
+                var obj = JSON.parse(data);
+                $.each(obj.Records, function(index, val) {
+                    $("#dataTableStock").find('tbody').append('<tr><td>'+val.modelo+'</td><td>'+val.stock+'</td><td>S/. '+val.precio+'</td></tr>');
+                });
+            });
+
+            $('#popup_stock').fadeIn('slow');
+            $('.popup-overlay').fadeIn('slow');
+            $('.popup-overlay').height($(window).height());
+            return false;
+        }
+        function nuevo_producto(){
+            
+            $("#producto").attr('placeholder', 'Equipo...');
+            $("#ocultar").attr('hidden', true);
+            $("#titulo_detalle").text('Nuevo Equipo');
+
+            $("#serie").removeAttr('disabled');
+            $("#btn_formulario").attr('onclick', "guardar_producto()");
+            $("#btn_formulario").text('Agregar');
+
+            $('#popup_editar').fadeIn('slow');
+            $('.popup-overlay').fadeIn('slow');
+            $('.popup-overlay').height($(window).height());
+            return false;
+        }
+        function guardar_producto(){
+            var equipo = $("#producto").val();
+            $.get('productos.php', {
+                parAccion: 'guardar_producto',
+                equipo: equipo
+            }, function(data) {
+                var obj = JSON.parse(data);
+                if (obj.Result == 'OK') {
+                    bootbox.alert({
+                        message: '<div class="alert alert-success" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Actualizado correctamente.</strong>'+
+                            '</div>'
+                    });
+                    lista_productos();
+                }else{
+                    bootbox.alert({
+                        message: '<div class="alert alert-danger" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Algo ha salido mal.</strong>'+
+                            '</div>'
+                    });
+                }
+            });
+        }
+        function lista_productos(){
+            $.get('productos.php', {
+              parAccion: 'list'
+            }, function(data) {
+              var obj = JSON.parse(data);
+              $("#dataTable").find('tbody').empty();
+              $.each(obj.Records, function(index, val) {
+                $("#dataTable").find('tbody').append('<tr>'+
+                    '<td>'+val.marca+'</td>'+
+                    '<td><span class="btn-xs btn-info" onclick="ver_stock('+val.id+');">Ver Stock</span></td>'+
+                    '<td style="text-align: center;"><span class="btn-xs btn-success" onclick="nuevo_modelo('+val.id+');"><i class="fa fa-plus"></i></span></td>'+
+                    '<td style="text-align: center;"><span class="btn-xs btn-warning" onclick="editar_producto('+val.id+');"><i class="fa fa-pencil"></i></span></td>'+
+                    '<td style="text-align: center;"><span class="btn-xs btn-danger" onclick="eliminar_producto('+val.id+');"><i class="fa fa-trash"></i></span></td>'+
+                    '</tr>');
+              });
+            });
+        }
+        $(document).ready(function() {
+            var contenido_fila;
+            var coincidencias;
+            var exp;
+            var codigoAscci;
+            $("#filtro_rapido").keyup(function(event){
+                //console.log(event);
+                if(!checkTeclaDel(event)){
+                    if($(this).val().length >= 2){
+                        filtrar($(this).val());
+                    }
+                }
+                
+            });
+            function filtrar(cadena){
+                console.log(cadena);
+                $("#dataTable tbody tr").each(function() {
+                    $(this).removeClass('oculta');
+                    contenido_fila = $(this).find('td:eq(0)').html();
+                    exp = new RegExp(cadena, 'gi');
+                    coincidencias = contenido_fila.match(exp);
+                    if (coincidencias != null) {
+                        $(this).addClass('resaltar');
+                    }else{
+                        $(this).addClass('oculta');
+                    }
+                });
+            }
+            function mostrarFilas(){
+                $("#dataTable tbody tr").each(function() {
+                    $(this).removeClass('oculta resaltar');
+                });
+            }
+            function checkTeclaDel(e){
+                codigoAscci = (e.keyCode ? e.keyCode : e.which);
+                //console.log(codigoAscci);
+                if (codigoAscci == 8) {
+                    if($("#filtro_rapido").val().length >= 2){
+                        filtrar($("#filtro_rapido").val());
+                    }else{
+                        mostrarFilas();
+                    }
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+            lista_productos();
+            $('#close_editar').on('click', function(){
+                limpiar_formulario();
+                $('#popup_editar').fadeOut('slow');
+                $('.popup-overlay').fadeOut('slow');
+                return false;
+                flag = false;
+            });
+            $('#close_stock').on('click', function(){
+                limpiar_formulario();
+                $('#popup_stock').fadeOut('slow');
+                $('.popup-overlay').fadeOut('slow');
+                return false;
+                flag = false;
+            });
+        });
+    </script>
+</head>
+<body id="page-top">
+    <div id="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Mantenimiento de alumnos</h3>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-xs-12" id="div_alumnos">
+                    <div style="margin-bottom: 10px; overflow: hidden;">
+                        <input type="text" id="filtro_rapido" name="filtro_rapido" class="form-control" placeholder="Filtro Rápido" style="width: 50%; float: left;">
+                        <button class="btn btn-success pull-right" onclick="nuevo_producto();">Agregar Equipo</button>
+                    </div>
+                    <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Marca</th>
+                                <th>Modelos</th>
+                                <th colspan="3" style="text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="popup_editar" style="display: none;">
+        <div class="content-popup">
+            <div class="close"><a href="#" id="close_editar"><img src="../css/images/close.png"/></a></div>
+            <div>
+                <h2 id="titulo_detalle">Nuevo Equipo</h2>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label for="producto">Equipo:</label>
+                            <input type="text" class="form-control" id="producto" name="producto" placeholder="Marca Equipo...">
+                        </div>
+                    </div>
+                    <div id="ocultar" hidden>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="producto">Marca:</label>
+                                <select class="form-control" id="combo_marca">
+                                    
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="producto">Stock Inicial:</label>
+                                <input type="text" class="form-control" id="stock_i" name="stock_i" placeholder="Stock Inicial...">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-4">
+                                <label for="producto">Precio:</label>
+                                <input type="text" class="form-control" id="precio" name="precio" placeholder="Precio...">
+                            </div>
+                        </div>
+                    </div>
+                    <span class="btn btn-danger" onclick="cerrar_editar()">Cerrar</span>
+                    <button type="submit" class="btn btn-success" style="float: right;" id="btn_formulario">Actualizar</button>
+            </div>
+        </div>
+    </div>
+    <div id="popup_stock" style="display: none;">
+        <div class="content-popup">
+            <div class="close"><a href="#" id="close_stock"><img src="../css/images/close.png"/></a></div>
+            <div>
+                <h2 id="titulo_detalle">Stock Producto</h2>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="dataTableStock" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Modelo</th>
+                                    <th>Stock</th>
+                                    <th>Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                      </table>
+                    </div>
+                    <span class="btn btn-danger" onclick="cerrar_stock()">Cerrar</span>
+            </div>
+        </div>
+    </div>
+    <div class="popup-overlay"></div>
+</body>
+</html>

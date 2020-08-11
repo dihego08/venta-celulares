@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Ventas</title>
+	<link href="../jtable/themes/lightcolor/blue/jtable.css" rel="stylesheet" type="text/css" />
+    <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="../css/jquery-ui-1.10.3.custom.css" rel="stylesheet" type="text/css" />
+    <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="../jstree/style.min.css" />
+    <script src="../js/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery-ui-1.10.3.custom.js" type="text/javascript"></script>
+    <script src="../js/jquery.jtable.js" type="text/javascript"></script>
+    <script src="../js/jquery.hotkeys-0.7.9.min.js" type="text/javascript"></script>
+    <link href="../js/validationEngine/validationEngine.jquery.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="../js/validationEngine/jquery.validationEngine-es.js"></script>
+    <script type="text/javascript" src="../js/validationEngine/jquery.validationEngine.js"></script>
+    <script src="../js/jquery.datetimepicker.js"></script>
+    <script src="../js/jquery.price_format.2.0.js"></script>
+    <script src="../js/bootbox.min.js"></script>
+    <style type="text/css">
+    	.clsDatePicker {
+            position:absolute;
+            cursor:default;
+            z-index:1001 !important
+        }
+        .ui-datepicker-month{
+            color: #313131;
+        }
+        .ui-datepicker-year{
+            color: #313131;
+        }
+    	#popup {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+        }
+        #popup_editar_detalle {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+        }
+        #popup_editar {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 1001;
+        }
+        .content-popup {
+            margin:0px auto;
+            margin-top:2%;
+            position:relative;
+            padding:10px;
+            width:75%;
+            /*min-height:250px;*/
+            border-radius:4px;
+            background-color:#FFFFFF;
+            box-shadow: 0 2px 5px #666666;
+        }
+        .content-popup h2 {
+            color:#48484B;
+            border-bottom: 1px solid #48484B;
+            margin-top: 0;
+            padding-bottom: 4px;
+        }
+        .popup-overlay {
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 999;
+            display:none;
+            background-color: #777777;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .close {
+            position: absolute;
+            right: 15px;
+        }
+        .ui-autocomplete {
+            position:absolute;
+            cursor:default;
+            z-index:1001 !important
+        }
+        .btn-xs{
+        	cursor: pointer;
+        }
+    </style>
+    <script type="text/javascript">
+        var ids = 0;
+        var cantidades = 0;
+        function t_documento(){
+            $.get('ventas.php', {
+                parAccion: 't_documento'
+            }, function(data) {
+                $("#t_documento").empty();
+                var obj = JSON.parse(data);
+                $.each(obj.Records, function(index, val) {
+                    $("#t_documento").append('<option value="'+val.id+'">'+val.doc+'</option>');
+                });
+            });
+        }
+        function dni_cliente(){
+            $.get('ventas.php', {
+                parAccion: 'dni_cliente'
+            }, function(data) {
+                $("#dni_cliente").empty();
+                var obj = JSON.parse(data);
+                $.each(obj.Records, function(index, val) {
+                    $("#dni_cliente").append('<option value="'+val.id+'">'+val.apellidos+', '+val.nombres+'</option>');
+                });
+            });
+        }
+    	function buscar(){
+            $.get('ventas.php', {
+                parAccion: 'buscar',
+                termino: $("#busqueda").val()
+            }, function(data) {
+                t_documento();
+                dni_cliente();
+                $("#resultado").removeAttr('hidden');
+                $("#tabla_resultado").find('tbody').empty();
+                var obj = JSON.parse(data);
+                $.each(obj.Records, function(index, val) {
+                    $("#tabla_resultado").find('tbody').append(
+                        '<tr>'+
+                            '<td>'+val.marca+'</td>'+
+                            '<td>'+val.modelo+'</td>'+
+                            '<td>'+val.stock+'</td>'+
+                            '<td>S/. '+val.precio+'</td>'+
+                            '<td><input type="text" style="width: 50%; display: inherit;" class="form-control" id="cant_'+val.id+'" value="1"><span style="margin-left: 2px; cursor: pointer;" onclick="agregar('+val.id+');" class="btn btn-success" ><i class="fa fa-plus"></i></span></td>'+
+                        '</tr>'
+                    );
+                });
+            });
+        }
+        function calcular_monto(subtotal, sumar){
+            var sub = $("#subtotal").val();
+            var t_d = $("#t_documento").val();
+            if (sumar) {
+                if (t_d == 1) {
+                    $("#subtotal").val((parseFloat(sub) + parseFloat(subtotal)).toFixed(2));
+                    var igv = parseFloat($("#subtotal").val()) * parseFloat(0.18);
+                    $("#igv").val(parseFloat(igv).toFixed(2));
+                    $("#total").val((parseFloat(igv) + parseFloat($("#subtotal").val())).toFixed(2));
+                }else{
+                    $("#subtotal").val((parseFloat(sub) + parseFloat(subtotal)).toFixed(2));
+                    $("#igv").val(parseFloat(0).toFixed(2));
+                    $("#total").val((0).toFixed(2));
+                }
+            }else{
+                if (t_d == 1) {
+                    $("#subtotal").val((parseFloat(subtotal)).toFixed(2));
+                    var igv = parseFloat($("#subtotal").val()) * parseFloat(0.18);
+                    $("#igv").val(parseFloat(igv).toFixed(2));
+                    $("#total").val((parseFloat(igv) + parseFloat($("#subtotal").val())).toFixed(2));
+                }else{
+                    $("#subtotal").val((parseFloat(subtotal)).toFixed(2));
+                    $("#igv").val(parseFloat(0).toFixed(2));
+                    $("#total").val(parseFloat($("#subtotal").val()).toFixed(2));
+                }
+            }
+            
+        }
+        function cancelar(){
+            $("#tabla_venta").find('tbody').empty();
+            $("#tabla_resultado").find('tbody').empty();
+            $("#busqueda").val("");
+            $("#n_documento").val('');
+            $("#subtotal").val('0.00');
+            $("#igv").val('0.00');
+            $("#total").val('0.00');
+            $("#resultado").attr('hidden', true);
+        }
+        function agregar(id){
+            var cantidad = $("#cant_"+id).val();
+            ids = ids + ',' + id;
+            cantidades = cantidades + ',' + cantidad;
+            $.get('ventas.php', {
+                parAccion: 'detalle',
+                id:id
+            }, function(data) {
+                var obj = JSON.parse(data);
+                var total = parseFloat(obj.Records.precio) * cantidad;
+                calcular_monto(total, true);
+                $("#tabla_venta").find('tbody').append(
+                    '<tr>'+
+                        '<td>'+obj.Records.marca+'</td>'+
+                        '<td>'+obj.Records.modelo+'</td>'+
+                        '<td>S/. '+obj.Records.precio+'</td>'+
+                        '<td>'+cantidad+'</td>'+
+                        '<td>S/. '+parseFloat(total).toFixed(2)+'</td>'+
+                    '</tr>'
+                );
+            });
+        }
+        function guardar(){
+            $.get('ventas.php', {
+                parAccion: 'guardar',
+                n_documento: $("#n_documento").val(),
+                t_documento: $("#t_documento").val(),
+                dni_cliente: $("#dni_cliente").val(),
+                subtotal: $("#subtotal").val(),
+                igv: $("#igv").val(),
+                total: $("#total").val(),
+                ids: ids,
+                cantidades: cantidades
+            }, function(data) {
+                var obj = JSON.parse(data);
+                if (obj.Result == 'OK') {
+                    bootbox.alert({
+                        message: '<div class="alert alert-success fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Venta Registrada Correctamente.</strong>'+
+                            '</div>'
+                    });
+                }else{
+                    bootbox.alert({
+                        message: '<div class="alert alert-danger fade in" style="margin-top: 5%; margin-bottom: 0;">'+
+                                '<strong>Algo ha salido mal.</strong>'+
+                            '</div>'
+                    });
+                }
+            });
+        }
+        $(document).ready(function() {
+            $("#t_documento").on('change', function() {
+                calcular_monto($("#subtotal").val(), false);
+            });
+        });
+    </script>
+</head>
+<body>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Nueva Venta</h3>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-xs-12" id="div_usuarios">
+                	<label>Busqueda</label>
+                    <input type="text" id="busqueda" class="form-control" name="" placeholder="Buscar Equipo">
+                </div>
+                <div class="col-md-12" style="margin-top: 10px;">
+                    <button class="btn btn-success" style="width: 100%;" onclick="buscar();">Buscar</button>
+                </div>
+        	</div>
+            <div class="row" style="margin-top: 10px;" hidden id="resultado">
+                <div class="col-md-8">
+                    <div class="form-row">
+                        <h3>Resultado de Busqueda</h3>
+                        <table class="table table-bordered" id="tabla_resultado">
+                            <thead>
+                                <tr>
+                                    <th>Equipo</th>
+                                    <th>Modelo</th>
+                                    <th>Stock</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="form-row" style="margin-top: 15px;">
+                        <h3>Lista de Venta</h3>
+                        <table class="table table-bordered" id="tabla_venta">
+                            <thead>
+                                <tr>
+                                    <th>Equipo</th>
+                                    <th>Modelo</th>
+                                    <th>Precio</th>
+                                    <th>Cantidad</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-row">
+                        <div class="col-md-6" style="margin-top: 10px;">
+                            <label>Num. Documento</label>
+                            <input type="text" class="form-control" id="n_documento" name="">
+                        </div>
+                        <div class="col-md-6" style="margin-top: 10px;">
+                            <label>Tipo Documento</label>
+                            <select class="form-control" id="t_documento">
+                                
+                            </select>
+                        </div>
+                        <div class="col-md-12" style="margin-top: 10px;">
+                            <label>Cliente</label>
+                            <select class="form-control" id="dni_cliente">
+                                
+                            </select>
+                        </div>
+                        <div class="col-md-6" style="margin-top: 10px;">
+                            <label>Subtotal (S/.)</label>
+                            <input type="text" class="form-control" id="subtotal" name="" value="0.00" readonly>
+                        </div>
+                        <div class="col-md-6" style="margin-top: 10px;">
+                            <label>IGV (S/.)</label>
+                            <input type="text" class="form-control" id="igv" name="" value="0.00" readonly>
+                        </div>
+                        <div class="col-md-12" style="margin-top: 10px;">
+                            <label>Total (S/.)</label>
+                            <input type="text" class="form-control" id="total" name="" value="0.00" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-12" style="margin-top: 10px;">
+                        <button class="btn btn-danger" onclick="cancelar();">Cancelar</button>
+                        <button class="btn btn-success pull-right" onclick="guardar();">Guardar</button>
+                    </div>
+                </div>
+            </div>
+    	</div>
+    </div>
+	<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+    <script src="../dist/js/sb-admin-2.js"></script>
+</body>
+</html>

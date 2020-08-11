@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<title>Tobbias::Sistema de Gestión Académica</title>
+	<link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <script src="vendor/jquery/jquery.min.js"></script>
+	<link rel="stylesheet" href="jstree/style.min.css" />
+	<script src="js/jquery-ui-1.9.2.min.js"></script>
+	<script src="jstree/jstree.min.js"></script>
+	
+    <style type="text/css">
+        #page-wrapper{
+            padding: 0 10px;
+        }
+        li{
+            border-bottom: none !important;
+        }
+    </style>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $.get('docentes/docentes.php', {
+                parAccion: 'contar',
+                ruc_empresa: localStorage.getItem("ruc_empresa")
+            }, function(data) {
+                var obj = JSON.parse(data);
+                $("#cant_alumnos").text(obj.cant_alumnos);
+                $("#cant_docentes").text(obj.cant_docentes);
+                $("#cant_padres").text(obj.cant_padres);
+            });
+        });
+    </script>
+</head>
+<body>
+	<div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">Tobbias :: Sistema de Gestión Académica</h3>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-lg-3 col-md-4">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="glyphicon glyphicon-education fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge" id="cant_alumnos">4</div>
+                                    <div>Alumnos</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--<a href="#">
+                            <div class="panel-footer">
+                                <span class="pull-left">Ver Detalles</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>-->
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <div class="panel panel-green">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="glyphicon glyphicon-blackboard fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge" id="cant_docentes">2</div>
+                                    <div>Docentes</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--<a href="proyectos.php">
+                            <div class="panel-footer">
+                                <span class="pull-left">Ver Detalles</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>-->
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <div class="panel panel-yellow">
+                        <div class="panel-heading">
+                            <div class="row">
+                                <div class="col-xs-3">
+                                    <i class="glyphicon glyphicon-user fa-5x"></i>
+                                </div>
+                                <div class="col-xs-9 text-right">
+                                    <div class="huge" id="cant_padres">2</div>
+                                    <div>Padres</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--<a href="proyectos.php">
+                            <div class="panel-footer">
+                                <span class="pull-left">Ver Detalles</span>
+                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                                <div class="clearfix"></div>
+                            </div>
+                        </a>-->
+                    </div>
+                </div>
+            </div>
+            <!--<div class="row">
+                <div class="col-xs-12" id="div_docentes">
+                    <div class="alert alert-success" role="alert" style="font-size: 2rem;">
+                        Con Tobbias puedes llevar un control de docentes, alumno, padres de familia o tutores, cursos, notas, asistencias y pensiones.
+                    </div>
+                </div>
+            </div>-->
+            <!--<div style="text-align: center;">
+                <img src="img/LOGO TOBBIAS2.png" style="width: 50%;">
+            </div>-->
+        </div>
+        <div style="background-image: url('img/LOGO TOBBIAS2.png'); background-size: contain; height: 600px; background-repeat: no-repeat; background-position: center; opacity: 0.7;">
+            
+        </div>
+        <div id="pie">
+            <div id="pie-container">
+                <div id="divLogo">
+                    <!--<img id="anu_emp3" src="img/logo.jpg" height="20px" width="73px" style="width:73px;height: 18px; float: left;">-->
+                </div>
+                <div id="divAnuncioTexto" style="width: calc(100% - 80px);text-align: center; float: left; padding-top: 2px;">
+                    2019 - Softluttion Technology. Todos los derechos reservados. <a target="_blank" href="https://web.facebook.com/SoftluttionPeruOficial/"> Facebook</a>
+                    <a href="https://www.facebook.com/pg/www.macroperu.edu.pe" target="_blank"><i class="btn-foursquare"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="popup-overlay"></div>
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="vendor/metisMenu/metisMenu.min.js"></script>
+    <script src="dist/js/sb-admin-2.js"></script>
+</body>
+</html>

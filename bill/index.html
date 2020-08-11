@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <title>Tobbias::Sistema de Gestión Académica</title>
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="dist/css/sb-admin-2.css" rel="stylesheet">
+    <link href="vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <link rel="stylesheet" href="jstree/style.min.css" />
+    <script src="js/jquery-ui-1.9.2.min.js"></script>
+    <script src="jstree/jstree.min.js"></script>
+    <script type="text/javascript">
+        function cerrar_sesion(){
+            localStorage.setItem("logeo",null);
+            localStorage.setItem("usuario",null);
+            localStorage.setItem("rol",null);
+            
+            localStorage.setItem("ruc_empresa",null);
+            
+            location.href ="login.html";
+        }
+        $(document).ready(function(){
+            $("#container").attr('src', 'inicio.html');
+            if(localStorage.getItem("logeo") == 'OK'){
+                $("#nombre_usuario").text(localStorage.getItem("nombres"));
+            }else{
+                location.href ="login.html";
+            }
+
+            $.post('utilitarios/tree_data.php',
+            {
+                dni_usuario: localStorage.getItem("usuario")
+            },function(data) {
+                var obj = JSON.parse(data);
+                $('#jstree').on('changed.jstree', function(e, data) {
+                    try {
+                        var varFlagTC = 0;
+                        $.each($('#jstree').jstree('get_selected'), function(index, value) {
+                            console.log(value);
+                            if (value == 14) {
+                                varFlagTC++;
+                            }
+                        });
+                        if (varFlagTC > 0) {
+                            setTimeout(function() {
+                                //$('#jstree').jstree('select_node', 14);
+                            }, 1500);
+                        } else {
+                            //$('#jstree').jstree('select_node', 14);
+                        }
+                        /*var ruta = $('#' + data.node.id).attr('value').trim();
+                        $('#container').attr('src', ruta);*/
+                    } catch (err) {
+                        console.error('Horrooooooooor ' + err);
+                    }
+                }).jstree({'core': {
+                        'check_callback': true,
+                        'data': obj
+                    },
+                    "themes": {
+                        "theme": "classic",
+                        "dots": true,
+                        "icons": true
+                    },
+                    "plugins": ["contextmenu", "dnd", "search", "state", "types", "wholerow"],
+                    "types": {
+                        "1": {
+                            "icon": "imagenes/cube.png"
+                        },
+                        "2": {
+                            "icon": "imagenes/view.png"
+                        }
+                    }
+                }).bind("select_node.jstree", function(e, data)
+                    {
+                        //if(jQuery.data($('#' + data.node.id).attr('value'), "href"))
+                        if($('#' + data.node.id).attr('value').trim() == null || $('#' + data.node.id).attr('value').trim() == "" || $('#' + data.node.id).attr('value').trim() == "null")
+                        {
+                            console.log("IS NULL: " + $('#' + data.node.id).attr('value').trim());
+                        }
+                        else
+                        {
+                            console.log("IS NOT NULL: " + $('#' + data.node.id).attr('value').trim());
+                            //window.location=jQuery.data($('#' + data.node.id).attr('value'), "href");
+                            var ruta = $('#' + data.node.id).attr('value').trim();
+                            $('#container').attr('src', ruta);
+                            //alert("No href defined for this element");
+                        }
+                        //alert($('#' + data.node.id).attr('value'));;
+                        
+                    });
+                $('#jstree').on('select_node.jstree', function(e, data) {
+                    data.instance.toggle_node(data.node);
+                });
+            });
+        });
+    </script>
+    <style type="text/css">
+        #page-wrapper{
+            padding: 0 10px;
+        }
+        li{
+            border-bottom: none !important;
+        }
+    </style>
+</head>
+<body style="padding: 20px; background-color: #fc2b00;">
+    <div id="wrapper">
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <a class="navbar-brand" href="index.html" style="/*padding: 5px 0 0 5px;*/"><img src="img/LOGO TOBBIAS4.png" style="width: 25%;" alt=""></a>
+            </div>
+            <ul class="nav navbar-top-links navbar-right">
+                <!--<li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-envelope fa-fw"></i> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-messages">
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <strong>John Smith</strong>
+                                    <span class="pull-right text-muted">
+                                        <em>Yesterday</em>
+                                    </span>
+                                </div>
+                                <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eleifend...</div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <strong>John Smith</strong>
+                                    <span class="pull-right text-muted">
+                                        <em>Yesterday</em>
+                                    </span>
+                                </div>
+                                <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eleifend...</div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <strong>John Smith</strong>
+                                    <span class="pull-right text-muted">
+                                        <em>Yesterday</em>
+                                    </span>
+                                </div>
+                                <div>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque eleifend...</div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a class="text-center" href="#">
+                                <strong>Read All Messages</strong>
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-tasks fa-fw"></i> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-tasks">
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <p>
+                                        <strong>Task 1</strong>
+                                        <span class="pull-right text-muted">40% Complete</span>
+                                    </p>
+                                    <div class="progress progress-striped active">
+                                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%">
+                                            <span class="sr-only">40% Complete (success)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <p>
+                                        <strong>Task 2</strong>
+                                        <span class="pull-right text-muted">20% Complete</span>
+                                    </p>
+                                    <div class="progress progress-striped active">
+                                        <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100" style="width: 20%">
+                                            <span class="sr-only">20% Complete</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <p>
+                                        <strong>Task 3</strong>
+                                        <span class="pull-right text-muted">60% Complete</span>
+                                    </p>
+                                    <div class="progress progress-striped active">
+                                        <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%">
+                                            <span class="sr-only">60% Complete (warning)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <p>
+                                        <strong>Task 4</strong>
+                                        <span class="pull-right text-muted">80% Complete</span>
+                                    </p>
+                                    <div class="progress progress-striped active">
+                                        <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%">
+                                            <span class="sr-only">80% Complete (danger)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a class="text-center" href="#">
+                                <strong>See All Tasks</strong>
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <span class="label label-pill label-danger count" style="border-radius:10px;"></span><i class="fa fa-bell fa-fw"></i> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-alerts">
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-comment fa-fw"></i> New Comment
+                                    <span class="pull-right text-muted small">4 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-twitter fa-fw"></i> 3 New Followers
+                                    <span class="pull-right text-muted small">12 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-envelope fa-fw"></i> Message Sent
+                                    <span class="pull-right text-muted small">4 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-tasks fa-fw"></i> New Task
+                                    <span class="pull-right text-muted small">4 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="#">
+                                <div>
+                                    <i class="fa fa-upload fa-fw"></i> Server Rebooted
+                                    <span class="pull-right text-muted small">4 minutes ago</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a class="text-center" href="#">
+                                <strong>See All Alerts</strong>
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </li>-->
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-user fa-fw"></i> <span id="nombre_usuario"></span> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <!--<li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        </li>
+                        <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                        </li>-->
+                        <li class="divider"></li>
+                        <li style="cursor: pointer;"><a href="#" onclick="cerrar_sesion();"><i class="fa fa-sign-out fa-fw"></i> Cerrar Sesión</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <div class="navbar-default sidebar" role="navigation" style="margin-top: 0px;">
+            <div class="sidebar-nav navbar-collapse">
+                <!--<ul class="nav" id="side-menu">
+                    <li style="background-color: #eee; margin-left: 5px;">
+                        <div class="input-group custom-search-form" style="width: 100%;">
+                            <h4 style="float: left; margin: 0px;">
+                                <span class="glyphicon glyphicon-list-alt"></span> Menú
+                            </h4>
+                            <button id="btnRefresh" type="button" class="btn btn-sm" title="Actualizar" onclick="" style="margin-top: 2px; float: right; height: 18px; width: 20px;">
+                                <span style="position: relative; left: -6px; top: -4px;" class="glyphicon glyphicon-retweet"></span>
+                            </button>
+                        </div>
+                    </li>
+                </ul>-->
+                <div id="jstree" style="min-height: 700px;">
+                </div>
+            </div>
+        </div>
+        <div id="page-wrapper">
+            <div id="contenido" style="height: 700px">
+                <iframe  id="container" width="100%" height="99%"   frameBorder="0" name="container" src="inicio.html"></iframe>
+                <iframe style="position:absolute;width:1px; height: 1px; border: 0" id="container2" frameBorder="0" name="container2" src="inicio.html"></iframe>
+            </div>
+        </div>
+        
+    </div>
+    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="vendor/metisMenu/metisMenu.min.js"></script>
+    <script src="dist/js/sb-admin-2.js"></script>
+</body>
+</html>
+<!--<script>
+    $(document).ready(function(){
+        function load_unseen_notification(view = ''){
+            $('.dropdown-menu').empty();
+            $.ajax({
+                url:"utilitarios/fetch.php",
+                method:"POST",
+                data:{view:view},
+                dataType:"json",
+                success:function(data){
+                    $.each(data.notification, function(index, val) {
+                        $(".dropdown-menu").append('<li>'+
+                            '<a href="#">'+
+                                '<div>'+
+                                    '<strong><i class="fa fa-upload fa-fw"></i> '+val.entidad+'</strong><br />'+
+                                '<small><em>'+val.alerta+'</em></small>'+
+                                    '<span class="pull-right text-muted small">'+val.fecha+'</span>'+
+                                '</div>'+
+                                '</a>'+
+                            '</li><li class="divider"></li>');
+                    });
+                    if(data.unseen_notification > 0){
+                        $('.count').html(data.unseen_notification);
+                    }
+                }
+            });
+        }
+     
+        load_unseen_notification();
+     
+        $(document).on('click', '.dropdown-toggle', function(){
+            $('.count').html('');
+            load_unseen_notification('yes');
+        });
+     
+        setInterval(function(){ 
+            load_unseen_notification();; 
+        }, 5000);
+    });
+</script>-->
